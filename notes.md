@@ -4,6 +4,8 @@
 * [QuickBasic 3 disassembly & reverse engineering notes](#quickbasic-3-disassembly--reverse-engineering-notes)
   * [BRUN30.EXE Runtime](#brun30exe-runtime)
   * [DEF FN](#def-fn)
+  * [GOSUB](#gosub)
+  * [GOTO](#goto)
   * [BASIC Compiled interrupt functions](#basic-compiled-interrupt-functions)
   * [0x3d Interrupt](#0x3d-interrupt)
     * [0x1 - FIX (float)](#0x1---fix-float)
@@ -120,6 +122,47 @@
 
 ## DEF FN
 Functions are `CALL`'d and return with `RET` The return value is pushed onto the stack.
+
+## GOSUB
+Like functions, gosub is converted into an assembly CALL and RET
+
+eg.
+
+```basic
+CLOSE
+GOSUB MySub
+CLOSE
+END
+
+MySub:
+PRINT "hello"
+RETURN
+```
+
+```asm
+       1000:0040 cd  3e           INT        0x3e
+       1000:0042 22              ??         22h    "                    CLOSE
+       1000:0043 e8  06  00       CALL       MySub                      GOSUB MySub
+       1000:0046 cd  3e           INT        0x3e
+       1000:0048 22              ??         22h    "                    CLOSE
+       1000:0049 cd  3e           INT        0x3e
+       1000:004b 01              ??         01h                         END
+       *************************************************************
+       *                          SUBROUTINE                        
+       *************************************************************
+       MySub
+       1000:004c cd  3f           INT        0x3f
+       1000:004e bc              ??         BCh
+       1000:004f bb  56  18       MOV        BX ,0x1856                 "hello"
+       1000:0052 cd  3f           INT        0x3f
+       1000:0054 6e              ??         6Eh    n
+       1000:0055 cd  3e           INT        0x3e
+       1000:0057 79              ??         79h    y                    PRINT "hello"
+       1000:0058 c3              RET
+
+```
+## GOTO
+goto is converted into a `JMP` instruction
 
 ## BASIC Compiled interrupt functions
 

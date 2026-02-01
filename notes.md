@@ -95,6 +95,7 @@
     * [0x3C - KEY on/off/list](#0x3c---key-onofflist)
     * [0x3D - KEY](#0x3d---key)
     * [0x42 - LOCATE arg](#0x42---locate-arg)
+    * [0x43 - LOCATE arg not supplied](#0x43---locate-arg-not-supplied)
     * [0x44 - LOCATE](#0x44---locate)
     * [0x46 - ENVIRON$ (name)](#0x46---environ-name)
     * [0x47 - ENVIRON$ (ordinal)](#0x47---environ-ordinal)
@@ -978,6 +979,9 @@ Supply an argument to locate command
 Input:
 
     BX - arg - integer value
+
+### 0x43 - LOCATE arg not supplied
+Used to indicate that an argument wasn't supplied and the previous value should be used instead.
 
 ### 0x44 - LOCATE
 LOCATE command. This also contains the last command argument

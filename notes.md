@@ -225,6 +225,8 @@
     * [0xA1 - compare float to temp var](#0xa1---compare-float-to-temp-var)
     * [0xA2 - compare double to temp var](#0xa2---compare-double-to-temp-var)
     * [0xA5 - ???? seems to be comparing temp var and float??](#0xa5----seems-to-be-comparing-temp-var-and-float)
+    * [0xA7 - compare float with zero](#0xa7---compare-float-with-zero)
+    * [0xA9 - compare tmpVarFloat with zero](#0xa9---compare-tmpvarfloat-with-zero)
     * [0xAB - multiply float by power of 2](#0xab---multiply-float-by-power-of-2)
     * [0xAF - float negation](#0xaf---float-negation)
     * [0x80 - double negation](#0x80---double-negation)
@@ -2050,8 +2052,26 @@ IF c% = POINT(1) THEN
        1000:00a4 80              ??         80h
        1000:00a5 74  03           JZ         LAB_1000_00aa
        1000:00a7 e9  0c  00       JMP        LAB_1000_00b6
-
 ```
+
+### 0xA7 - compare float with zero
+Compare float variable with zero and set zero flag accordingly
+
+```asm
+       1000:004c be  56  18       MOV        SI ,0x1856               FLOAT VALUE
+       1000:004f cd  3f           INT        0x3f
+       1000:0051 a7              db         A7h                       I3F_A7_COMPARE_FLOAT_ZERO
+       1000:0052 74  03           JZ         LAB_1000_0057
+       1000:0054 e9  0c  00       JMP        LAB_1000_0063
+```
+
+Input:
+
+    SI - float - pointer to float
+
+### 0xA9 - compare tmpVarFloat with zero
+Compare tmpFloatValue with zero and set flags accordingly
+
 ### 0xAB - multiply float by power of 2
 Multiply float by power of 2 (2 byte command) push resulting float to stack
 

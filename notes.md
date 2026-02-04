@@ -12,7 +12,8 @@
   * [0x3d Interrupt](#0x3d-interrupt)
     * [0x1 - FIX (float)](#0x1---fix-float)
     * [0x2 - FIX (double)](#0x2---fix-double)
-    * [0x3 - ??](#0x3---)
+    * [0x3 - INT (float)](#0x3---int-float)
+    * [0x4 - INT (double)](#0x4---int-double)
     * [0x5 - CHR$](#0x5---chr)
     * [0x6 - INKEY$](#0x6---inkey)
     * [0x7 - INPUT$](#0x7---input)
@@ -242,6 +243,8 @@
     * [0xB8 - INPUT load variable value](#0xb8---input-load-variable-value)
     * [0xBA - LEN](#0xba---len)
     * [0xBC - print to screen start](#0xbc---print-to-screen-start)
+    * [0xBD - PRINT USING](#0xbd---print-using)
+    * [0xBE - PRINT \#](#0xbe---print-)
     * [0xBB - ASC](#0xbb---asc)
 <!-- TOC -->
 
@@ -345,11 +348,19 @@ Input:
 
     BX - pointer to double value
 
-### 0x3 - ??
+### 0x3 - INT (float)
+Next Lower Integer. result stored in tmpVarFloat
 
 Input:
 
     BX - pointer to float
+
+### 0x4 - INT (double)
+Next Lower Integer. result stored in tmpVarDouble
+
+Input:
+
+    BX - pointer to double
 
 ### 0x5 - CHR$
 Convert ASCII Code to Character
@@ -2216,6 +2227,27 @@ eg.
        1000:00a6 cd  3e           INT        0x3e
        1000:00a8 79              db         79h           INT_3E_79_PRINT
 ```
+
+### 0xBD - PRINT USING
+Formatted Screen Display
+
+`PRINT USING strexpr; exprlist [;]`
+
+Print params are seperate opcodes same as PRINT
+
+Input:
+
+    BX - strexpr - pointer to formatting string
+
+### 0xBE - PRINT \#
+Print to file
+
+`PRINT #1, "hello"`
+
+Input:
+
+    BX - filehandle - integer value
+
 ### 0xBB - ASC
 Returns the ASCII value of the first character of a string expression.
 string passed in BX

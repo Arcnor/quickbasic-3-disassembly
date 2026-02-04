@@ -1,8 +1,8 @@
 public enum Int3DEnum {
     INT_3D_1_FIX_FLOAT(0x1),
     INT_3D_2_FIX_DOUBLE(0x2),
-    INT_3D_3_UNK(0x3),
-    INT_3D_4_UNK(0x4),
+    INT_3D_3_INT_FLOAT(0x3),
+    INT_3D_4_INT_DOUBLE(0x4),
     INT_3D_5_CHR$(0x5),
     INT_3D_6_INKEY$(0x6),
     INT_3D_7_INPUT$(0x7),

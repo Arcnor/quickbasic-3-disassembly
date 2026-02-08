@@ -92,10 +92,10 @@ public class QuickBasic3Disassembler extends GhidraScript {
                 createComment(currentProgram,
                         instr.getAddress(),
                         getCommandString(intCode, commandByte),
-                        CommentType.PRE);
+                        CommentType.EOL);
 
                 if (intCode == 0x3f && (commandByte == 0x5e || commandByte == 0x5d)) { // ON GOTO
-                    nextAddress = handleOnGoto(disassembler, nextAddress).subtract(1);
+                    nextAddress = handleOnGoto(disassembler, nextAddress.subtract(1));
                 } else {
                     nextAddress = nextAddress.add(getNumCommandBytes(intCode, commandByte, nextAddress)-1); // skip command byte
                 }

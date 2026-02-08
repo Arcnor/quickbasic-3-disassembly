@@ -1,23 +1,24 @@
 import ghidra.app.script.GhidraScript;
+import ghidra.framework.store.LockException;
+import ghidra.program.database.function.OverlappingFunctionException;
 import ghidra.program.disassemble.Disassembler;
 import ghidra.program.disassemble.DisassemblerMessageListener;
-import ghidra.program.model.address.Address;
-import ghidra.program.model.address.AddressSet;
-import ghidra.program.model.address.SegmentedAddress;
-import ghidra.program.model.address.SegmentedAddressSpace;
+import ghidra.program.model.address.*;
 import ghidra.program.model.data.DataType;
-import ghidra.program.model.listing.CommentType;
-import ghidra.program.model.listing.Data;
-import ghidra.program.model.listing.Instruction;
+import ghidra.program.model.listing.*;
 import ghidra.program.model.mem.MemoryAccessException;
+import ghidra.program.model.mem.MemoryConflictException;
 import ghidra.program.model.scalar.Scalar;
 import ghidra.program.model.symbol.RefType;
 import ghidra.program.model.symbol.SourceType;
 import ghidra.program.model.util.CodeUnitInsertionException;
+import ghidra.util.exception.CancelledException;
+import ghidra.util.exception.InvalidInputException;
 import ghidra.util.task.ConsoleTaskMonitor;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 import static ghidra.app.cmd.comments.SetCommentCmd.createComment;
 
@@ -36,6 +37,8 @@ public class QuickBasic3Disassembler extends GhidraScript {
             print("Failed to get word datatype!");
         }
         Address currentAddr = currentProgram.getMemory().getMinAddress().add(0x40);
+        createBrun30Segments(currentAddr);
+
         printf("min address = %s %s\n", currentAddr.toString(), byteDataType.getDataTypePath());
         Disassembler disassembler = Disassembler.getDisassembler(currentProgram, new ConsoleTaskMonitor(), DisassemblerMessageListener.CONSOLE);
 
@@ -60,7 +63,7 @@ public class QuickBasic3Disassembler extends GhidraScript {
                     currentProgram.getListing().createData(nextAddress, byteDataType);
 
                     createComment(currentProgram,
-                            nextAddress,
+                            instr.getAddress(),
                             getCommandString(intCode, commandByte),
                             CommentType.EOL);
 
@@ -71,7 +74,36 @@ public class QuickBasic3Disassembler extends GhidraScript {
                     }
                     if (intCode == 0x3e && (commandByte == 2 || commandByte == 1)) {
                         endReached = true;
+                        instr.setFlowOverride(FlowOverride.RETURN);
+                    } else {
+                        instr.setFallThrough(nextAddress);
                     }
+                }
+            } else if (instr != null && instr.toString().startsWith("INTB")) {
+                int intCode = Integer.parseInt(instr.toString().substring(4,6), 16);
+                Scalar scalar = (Scalar) instr.getOpObjects(0)[0];
+                int commandByte = (int)scalar.getValue();
+                String commandStr = getCommandString(intCode, commandByte);
+                if (commandStr.endsWith("_UNK")) {
+                    printf("%s: basic command %s\n", currentAddr, commandStr);
+                }
+//                currentProgram.getListing().createData(nextAddress, byteDataType);
+
+                createComment(currentProgram,
+                        instr.getAddress(),
+                        getCommandString(intCode, commandByte),
+                        CommentType.PRE);
+
+                if (intCode == 0x3f && (commandByte == 0x5e || commandByte == 0x5d)) { // ON GOTO
+                    nextAddress = handleOnGoto(disassembler, nextAddress).subtract(1);
+                } else {
+                    nextAddress = nextAddress.add(getNumCommandBytes(intCode, commandByte, nextAddress)-1); // skip command byte
+                }
+                if (intCode == 0x3e && (commandByte == 2 || commandByte == 1)) {
+                    endReached = true;
+                    instr.setFlowOverride(FlowOverride.RETURN);
+                } else {
+                    instr.setFallThrough(nextAddress);
                 }
             } else {
                 // TODO follow CALL and branch instructions
@@ -119,7 +151,7 @@ public class QuickBasic3Disassembler extends GhidraScript {
     int getNumCommandBytes(int intCode, int commandByte, Address commandByteAddress) throws MemoryAccessException {
         switch (intCode) {
             case 0x3d : return Int3DEnum.findByCmd(commandByte).cmdLength;
-            case 0x3e : return 1; //Int3EEnum.findByCmd(commandByte).cmdLength;
+            case 0x3e : return Int3EEnum.findByCmd(commandByte).cmdLength;
             case 0x3f : {
                 if (commandByte == 0xb7) {
                     int numArgs = Byte.toUnsignedInt(currentProgram.getMemory().getByte(commandByteAddress.add(1)));
@@ -146,5 +178,33 @@ public class QuickBasic3Disassembler extends GhidraScript {
         }
         a = as.getMaxAddress().add(1);
         return a;
+    }
+
+    void createBrun30Segments(Address currentAddr) throws AddressOverflowException, LockException, CancelledException, MemoryConflictException, InvalidInputException, OverlappingFunctionException {
+        createSegment("BRun30Int3D", 0x9000, currentAddress, Arrays.stream(Int3DEnum.values()).map(Enum::name).toList());
+        createSegment("BRun30Int3E", 0x9010, currentAddress, Arrays.stream(Int3EEnum.values()).map(Enum::name).toList());
+        createSegment("BRun30Int3F", 0x9020, currentAddress, Arrays.stream(Int3FEnum.values()).map(Enum::name).toList());
+    }
+
+    void createSegment(String name, int segment, Address currentAddress, List<String> opNames) throws AddressOverflowException, LockException, CancelledException, MemoryConflictException, InvalidInputException, OverlappingFunctionException {
+        if (currentProgram.getMemory().getBlock(name) == null) {
+            currentProgram.getMemory().createInitializedBlock(
+                    name,
+                    (Address)((SegmentedAddressSpace)currentAddress.getAddressSpace()).getAddress(segment, 0),
+                    256L,
+                    (byte)0xCB,
+                    null,
+                    false
+            );
+        }
+
+        for (int i = 0; i < opNames.size(); i++) {
+            String opName = opNames.get(i);
+            Address funcAddress = ((SegmentedAddressSpace)currentAddress.getAddressSpace()).getAddress(segment, i+1);
+            if (currentProgram.getFunctionManager().getFunctionAt(funcAddress) != null) {
+                currentProgram.getFunctionManager().removeFunction(funcAddress);
+            }
+            currentProgram.getFunctionManager().createFunction(opName, funcAddress, new AddressSet(funcAddress), SourceType.USER_DEFINED);
+        }
     }
 }

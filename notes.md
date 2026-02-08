@@ -41,6 +41,8 @@
     * [0x25 - CSRLIN](#0x25---csrlin)
     * [0x27 - POINT (x, y)](#0x27---point-x-y)
     * [0x2A - POINT value](#0x2a---point-value)
+    * [0x2D - STICK](#0x2d---stick)
+    * [0x2E - STRIG](#0x2e---strig)
     * [0x2F - EOF](#0x2f---eof)
     * [0x30 - LOC](#0x30---loc)
     * [0x31 - LOF](#0x31---lof)
@@ -53,6 +55,8 @@
     * [0x3E - EXP (double)](#0x3e---exp-double)
     * [0x43 - TIMER](#0x43---timer)
     * [0x45 - IOCTL$](#0x45---ioctl)
+    * [0x46 - ENVIRON$ (name)](#0x46---environ-name)
+    * [0x47 - ENVIRON$ (ordinal)](#0x47---environ-ordinal)
     * [0x48 - ERDEV](#0x48---erdev)
     * [0x49 - ERDEV$](#0x49---erdev)
     * [0x4A - COMMAND$](#0x4a---command)
@@ -83,6 +87,7 @@
     * [0x20 - OPEN mode](#0x20---open-mode)
     * [0x21 - CLOSE](#0x21---close)
     * [0x22 - CLOSE (close all open files)](#0x22---close-close-all-open-files)
+    * [0x23 - NAME](#0x23---name)
     * [0x24 - KILL](#0x24---kill)
     * [0x25 - GET (default)](#0x25---get-default)
     * [0x26 - GET](#0x26---get)
@@ -98,8 +103,6 @@
     * [0x42 - LOCATE arg](#0x42---locate-arg)
     * [0x43 - LOCATE arg not supplied](#0x43---locate-arg-not-supplied)
     * [0x44 - LOCATE](#0x44---locate)
-    * [0x46 - ENVIRON$ (name)](#0x46---environ-name)
-    * [0x47 - ENVIRON$ (ordinal)](#0x47---environ-ordinal)
     * [0x4A - PALETTE](#0x4a---palette)
     * [0x51 - PLAY](#0x51---play)
     * [0x52 - PLAY ON](#0x52---play-on)
@@ -109,12 +112,17 @@
     * [0x56 - PSET](#0x56---pset)
     * [0x58 - PUT (graphics)](#0x58---put-graphics)
     * [0x5B - SCREEN](#0x5b---screen)
+    * [0x5C - STRIG ON](#0x5c---strig-on)
+    * [0x5D - STRIG OFF](#0x5d---strig-off)
     * [0x64 - COM(n) ON](#0x64---comn-on)
     * [0x65 - COM(n) OFF](#0x65---comn-off)
     * [0x66 - COM(n) STOP](#0x66---comn-stop)
     * [0x67 - KEY(n) ON](#0x67---keyn-on)
     * [0x68 - KEY(n) OFF](#0x68---keyn-off)
     * [0x69 - KEY(n) STOP](#0x69---keyn-stop)
+    * [0x76 - TIMER ON](#0x76---timer-on)
+    * [0x77 - TIMER OFF](#0x77---timer-off)
+    * [0x78 - TIMER STOP](#0x78---timer-stop)
     * [0x79 - PRINT](#0x79---print)
     * [0x7D - IOCTL](#0x7d---ioctl)
     * [0x7E - ENVIRON](#0x7e---environ)
@@ -130,6 +138,8 @@
   * [0x3f Interrupt](#0x3f-interrupt)
     * [0x2 - ON ERROR trap](#0x2---on-error-trap)
     * [0x4 - ON KEY trap](#0x4---on-key-trap)
+    * [0x6 - ON STRIG](#0x6---on-strig)
+    * [0x7 - ON TIMER](#0x7---on-timer)
     * [0x8 - ON PLAY trap](#0x8---on-play-trap)
     * [0x9 - RESUME label](#0x9---resume-label)
     * [0xA - RSET](#0xa---rset)
@@ -137,7 +147,10 @@
     * [0xE - READ (double)](#0xe---read-double)
     * [0xF - READ (integer)](#0xf---read-integer)
     * [0x10 - READ (string)](#0x10---read-string)
-    * [0x15 - VARPTR$](#0x15---varptr)
+    * [0x15 - VARPTR$ float](#0x15---varptr-float)
+    * [0x16 - VARPTR$ double](#0x16---varptr-double)
+    * [0x17 - VARPTR$ integer](#0x17---varptr-integer)
+    * [0x18 - VARPTR$ string](#0x18---varptr-string)
     * [0x19 - float to int](#0x19---float-to-int)
     * [0x1D - float to boolean](#0x1d---float-to-boolean)
     * [0x1E - double to boolean](#0x1e---double-to-boolean)
@@ -207,12 +220,14 @@
     * [0x7E - POP double](#0x7e---pop-double)
     * [0x7F - Addition (float)](#0x7f---addition-float)
     * [0x80 - Addition (double)](#0x80---addition-double)
-    * [0x81 - Addition temp var + (float)](#0x81---addition-temp-var--float)
+    * [0x81 - Addition temp var + DI (float)](#0x81---addition-temp-var--di-float)
     * [0x82 - Addition temp var + (double)](#0x82---addition-temp-var--double)
+    * [0x83 - Addition temp var + SI (float)](#0x83---addition-temp-var--si-float)
     * [0x85 - Addition stack + temp var (float)](#0x85---addition-stack--temp-var-float)
     * [0x87 - Division (float)](#0x87---division-float)
     * [0x88 - Division (double)](#0x88---division-double)
-    * [0x89 - Division tmpVarFloat by float](#0x89---division-tmpvarfloat-by-float)
+    * [0x89 - Division tmpVarFloat by float DI](#0x89---division-tmpvarfloat-by-float-di)
+    * [0x8B - Division tmpVarFloat by float SI](#0x8b---division-tmpvarfloat-by-float-si)
     * [0x8f - Multiplication (float)](#0x8f---multiplication-float)
     * [0x90 - Multiplication (double)](#0x90---multiplication-double)
     * [0x91 - Multiplication float tmpVarFloat DI](#0x91---multiplication-float-tmpvarfloat-di)
@@ -614,6 +629,46 @@ Input:
         n = 3 the current world y coordinate, if WINDOW is
               active; otherwise, the current physical y coordinate.
     DX - unknown - seems to be set to the integer value 0x7fff
+### 0x2D - STICK
+return Joystick Coordinates
+`y = STICK(n)`
+
+Input:
+
+    BX - n - integer value.
+                A numeric expression in the range 0 to 3. Determines what
+                kind of information is returned, as follows:
+
+                0   Returns x coordinate of joystick A. A STICK(0) call
+                    must be performed before STICK(1), STICK(2), or
+                    STICK(3) can be used.
+                1   Returns the y coordinate of joystick A.
+                2   Returns the x coordinate of joystick B.
+                3   Returns the y coordinate of joystick B.
+
+Return:
+
+    BX - returnValue - Integer value
+
+### 0x2E - STRIG
+Status of Joystick Buttons
+`STRIG(n)`
+Input:
+
+    BX - n - integer value in the range 0 to 3. Determines the
+                kind of information returned, as follows:
+
+                0   Returns -1 if button A has been pressed since the most
+                    recent STRIG(0) call; otherwise, returns 0.
+                1   Returns -1 if button A is currently pressed; otherwise
+                    returns 0.
+                2   Returns -1 if button B has been pressed since the most
+                    recent STRIG(2) call; otherwise returns 0.
+                3   Returns -1 if button B is currently pressed; otherwise
+                    returns 0.
+Return:
+
+    BX - returnValue - Integer value
 
 ### 0x2F - EOF
 Checks for end of file.
@@ -711,6 +766,30 @@ Input:
 Return:
 
     BX - string - pointer to control string
+
+### 0x46 - ENVIRON$ (name)
+Fetch value from system environment table.
+eg. `path$ = ENVIRON$("PATH")`
+
+Input:
+
+    BX - envName - pointer to string containing env name
+
+Returns:
+
+    BX - pointer to string containing env value.
+
+### 0x47 - ENVIRON$ (ordinal)
+Fetch value from system environment table by number.
+eg. `envValue$ = ENVIRON$(1)`
+
+Input:
+
+    BX - ordinal - integer value of index to env table entry to fetch
+
+Returns:
+
+    BX - pointer to string containing env value.
 
 ### 0x48 - ERDEV
 Critical Error Code
@@ -919,6 +998,16 @@ Input:
 ### 0x22 - CLOSE (close all open files)
 Close File or Device
 
+### 0x23 - NAME
+Rename file
+
+`NAME oldname AS newname`
+
+Input:
+
+    BX - oldname - pointer to string containing old filename
+    DX - newname - pointer to string containing new filename
+
 ### 0x24 - KILL
 delete file
 
@@ -1018,30 +1107,6 @@ Input:
 
     BX - arg - integer value
 
-### 0x46 - ENVIRON$ (name)
-Fetch value from system environment table. 
-eg. `path$ = ENVIRON$("PATH")`
-
-Input:
-
-    BX - envName - pointer to string containing env name
-
-Returns:
-
-    BX - pointer to string containing env value.
-
-### 0x47 - ENVIRON$ (ordinal)
-Fetch value from system environment table by number.
-eg. `envValue$ = ENVIRON$(1)`
-
-Input:
-
-    BX - ordinal - integer value of index to env table entry to fetch
-
-Returns:
-
-    BX - pointer to string containing env value.
-
 ### 0x4A - PALETTE
 Change Color in the Palette
 `PALETTE [attribute, color]`
@@ -1112,6 +1177,18 @@ Setup screen mode
 
 `mode` passed in `BX`
 
+### 0x5C - STRIG ON
+Enable/Disable the STRIG Function
+
+### 0x5D - STRIG OFF
+Disable the STRIG Function. Has unknown second command byte.
+
+```asm
+       1000:004f cd  3e           INT        0x3e
+       1000:0051 5d              db         5Dh
+       1000:0052 cc              ??         CCh
+```
+
 ### 0x64 - COM(n) ON
 Enable COM port n
 
@@ -1157,6 +1234,20 @@ Enable key trap
 Input:
 
     BX - n - key to trap (1 - 20)
+
+### 0x76 - TIMER ON
+Enable timer event trapping
+
+### 0x77 - TIMER OFF
+Disable timer event trapping
+
+### 0x78 - TIMER STOP
+Disable timer event trapping by continue to check
+
+Also disables trapping, but QB continues checking. If the
+specified amount of time has elapsed, a subsequent TIMER
+ON results in an immediate trap (provided an ON TIMER
+statement with a nonzero line number has been executed).
 
 ### 0x79 - PRINT
 Displays one or more numeric or string expressions on screen.
@@ -1293,6 +1384,24 @@ Input:
     BX - n - key number (1 to 20)
     DX - lineNum | line label - Not sure how this is calculated yet. *TODO*
 
+### 0x6 - ON STRIG
+Trap for Specified Joystick Button
+`ON STRIG(n) GOSUB {linenum | linelabel}`
+
+Input:
+
+    BX - n - integer value
+    DX - jumpTargetAddr - offset to jump to in current segment. eg. CS:jumpTargetAddr
+
+### 0x7 - ON TIMER
+Trap for Elapsed Time
+`ON TIMER(n) GOSUB {linenum | linelabel}`
+
+Input:
+
+    BX - n - pointer to float containing value in seconds
+    DX - jumpTargetAddr - offset to jump to in current segment. eg. CS:jumpTargetAddr
+
 ### 0x8 - ON PLAY trap
 Trap for Background Music Remaining
 `ON PLAY(queuelimit) GOSUB {linenum | linelabel}`
@@ -1346,7 +1455,40 @@ Input:
 
     DX - pointer to destination string
 
-### 0x15 - VARPTR$
+### 0x15 - VARPTR$ float
+Offset of Variable, in Character Form
+
+Input:
+
+    BX - variable - pointer to variable
+
+Return:
+
+    BX - pointer to string variable
+
+### 0x16 - VARPTR$ double
+Offset of Variable, in Character Form
+
+Input:
+
+    BX - variable - pointer to variable
+
+Return:
+
+    BX - pointer to string variable
+
+### 0x17 - VARPTR$ integer
+Offset of Variable, in Character Form
+
+Input:
+
+    BX - variable - pointer to variable
+
+Return:
+
+    BX - pointer to string variable
+
+### 0x18 - VARPTR$ string
 Offset of Variable, in Character Form
 
 Input:
@@ -1924,7 +2066,7 @@ Input:
 SI - pointer to first double
 DI - pointer to second double
 
-### 0x81 - Addition temp var + (float)
+### 0x81 - Addition temp var + DI (float)
 Add float to temp var storing result in temp var
 
 Input:
@@ -1937,6 +2079,13 @@ Add double to temp var storing result in temp var
 Input:
 
     DI - double - pointer to double to be added.
+
+### 0x83 - Addition temp var + SI (float)
+Add float to temp var storing result in temp var
+
+Input:
+
+    SI - float - pointer to float to be added.
 
 ### 0x85 - Addition stack + temp var (float)
 Has second byte seems to start at 0x80 and increment for each call to op
@@ -1959,12 +2108,19 @@ Input:
 SI - pointer to first double
 DI - pointer to second double
 
-### 0x89 - Division tmpVarFloat by float
+### 0x89 - Division tmpVarFloat by float DI
 divide tmpVarFloat by float storing result in tmpVarFloat
 
 Input:
 
     DI - float - pointer to float to divide by
+
+### 0x8B - Division tmpVarFloat by float SI
+divide tmpVarFloat by float storing result in tmpVarFloat
+
+Input:
+
+    SI - float - pointer to float to divide by
 
 ### 0x8f - Multiplication (float)
 Multiply two floats together and push result to stack

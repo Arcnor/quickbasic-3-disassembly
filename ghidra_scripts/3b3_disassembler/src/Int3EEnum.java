@@ -33,7 +33,7 @@ public enum Int3EEnum {
     INT_3E_20_OPEN_MODE(0x20),
     INT_3E_21_CLOSE(0x21),
     INT_3E_22_CLOSE_NO_ARGS(0x22),
-    INT_3E_23_UNK(0x23),
+    INT_3E_23_NAME(0x23),
     INT_3E_24_KILL(0x24),
     INT_3E_25_GET_DEFAULT(0x25),
     INT_3E_26_GET(0x26),
@@ -68,8 +68,8 @@ public enum Int3EEnum {
     INT_3E_43_LOCATE_ARG_OMITTED(0x43),
     INT_3E_44_LOCATE(0x44),
     INT_3E_45_UNK(0x45),
-    INT_3E_46_ENVIRON$_NAME(0x46),
-    INT_3E_47_ENVIRON$_ORDINAL(0x47),
+    INT_3E_46_UNK(0x46),
+    INT_3E_47_UNK(0x47),
     INT_3E_48_UNK(0x48),
     INT_3E_49_UNK(0x49),
     INT_3E_4A_PALETTE(0x4a),
@@ -90,8 +90,8 @@ public enum Int3EEnum {
     INT_3E_59_UNK(0x59),
     INT_3E_5A_UNK(0x5a),
     INT_3E_5B_SCREEN(0x5b),
-    INT_3E_5C_UNK(0x5c),
-    INT_3E_5D_UNK(0x5d),
+    INT_3E_5C_STRIG_ON(0x5c),
+    INT_3E_5D_STRIG_OFF(0x5d, 2),
     INT_3E_5E_UNK(0x5e),
     INT_3E_5F_UNK(0x5f),
     INT_3E_60_UNK(0x60),
@@ -116,9 +116,9 @@ public enum Int3EEnum {
     INT_3E_73_UNK(0x73),
     INT_3E_74_UNK(0x74),
     INT_3E_75_UNK(0x75),
-    INT_3E_76_UNK(0x76),
-    INT_3E_77_UNK(0x77),
-    INT_3E_78_UNK(0x78),
+    INT_3E_76_TIMER_ON(0x76),
+    INT_3E_77_TIMER_OFF(0x77),
+    INT_3E_78_TIMER_STOP(0x78),
     INT_3E_79_PRINT(0x79),
     INT_3E_7A_UNK(0x7a),
     INT_3E_7B_UNK(0x7b),
@@ -258,9 +258,16 @@ public enum Int3EEnum {
 
 
     public final int cmd;
+    public final int cmdLength;
 
     Int3EEnum(int cmd) {
         this.cmd = cmd;
+        this.cmdLength = 1;
+    }
+
+    Int3EEnum(int cmd, int cmdLength) {
+        this.cmd = cmd;
+        this.cmdLength = cmdLength;
     }
 
     public static Int3EEnum findByCmd(int cmd) {
